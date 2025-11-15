@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { verifyLocalUser } from "@/lib/localUserDatabase";
 import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
@@ -10,9 +11,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   loading: boolean;
 }
-
-const DEFAULT_EMAIL = "admin@local";
-const DEFAULT_PASSWORD = "Admin123";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -41,13 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Autenticación local para cuenta por defecto
-    if (email === DEFAULT_EMAIL && password === DEFAULT_PASSWORD) {
-      const localUser = {
-        id: "local-admin",
-        email,
+    const localUser = verifyLocalUser(email, password);
+    if (localUser) {
+      const hydratedUser = {
+        id: localUser.id,
+        email: localUser.email,
+        user_metadata: {
+          name: localUser.name,
+          role: localUser.role,
+          area: localUser.area,
+          source: "local-db",
+        },
+        app_metadata: { provider: "local-db" },
       } as unknown as User;
-      setUser(localUser);
+      setUser(hydratedUser);
       setSession(null);
       setLoading(false);
       navigate("/dashboard");
