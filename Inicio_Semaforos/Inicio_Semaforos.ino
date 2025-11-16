@@ -71,8 +71,8 @@ void applyCfgToGlobals(){ T_ROJO=cfg.rojo; T_VERDE=cfg.verde; T_AMARILLO=cfg.ama
 void loadCfgDefaults(){ cfg.rojo=8000; cfg.verde=9000; cfg.amarillo=2000; applyCfgToGlobals(); }
 
 // ====== WiFi STA + HTTP ======
-const char* WIFI_SSID = "jefferson";
-const char* WIFI_PASS = "123456789";
+const char* WIFI_SSID = "ANGELO";
+const char* WIFI_PASS = "omcvlacp17j";
 WebServer server(80);  // el proxy corre en 8080; el ESP32 queda en 80
 
 // ====== Utiles ======

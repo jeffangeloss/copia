@@ -62,6 +62,28 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const ensureString = (value: unknown) =>
+    typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+
+  const userMetadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  const metadataName =
+    ensureString(userMetadata["name"]) ??
+    ensureString(userMetadata["full_name"]) ??
+    ensureString(userMetadata["display_name"]);
+
+  const emailHandle = typeof user?.email === "string" ? user.email.split("@")[0] : "";
+  const fallbackName =
+    ensureString(emailHandle) ??
+    ensureString(user?.email) ??
+    "Operador autorizado";
+
+  const displayName = metadataName ?? fallbackName;
+  const normalizedDisplay = displayName.toLowerCase();
+  const normalizedEmail = typeof user?.email === "string" ? user.email.toLowerCase() : "";
+  const shouldShowStormEmoji =
+    normalizedDisplay === "jefferson sanchez" ||
+    normalizedEmail === "jjjangelosss@gmail.com";
+
   const initialOverride = getApiBaseOverride();
   const initialEffective = getApiBaseUrl();
   const [apiOverride, setApiOverride] = useState(initialOverride);
@@ -290,7 +312,10 @@ export default function Dashboard() {
 
   useEffect(() => { setApiField(apiOverride || apiEffective); }, [apiOverride, apiEffective]);
 
-  useEffect(() => { refreshProxyBase(); }, [refreshProxyBase]);
+  useEffect(() => {
+    if (loading || !user) return;
+    refreshProxyBase();
+  }, [loading, user, refreshProxyBase]);
 
   // Redirigir si no hay usuario
   useEffect(() => { if (!loading && !user) navigate("/auth"); }, [user, loading, navigate]);
@@ -304,14 +329,18 @@ export default function Dashboard() {
     return () => window.clearInterval(interval);
   }, []);
 
-  // Sondeo periódico
+  // Sondeo periódico tras autenticación
   useEffect(() => {
+    if (loading || !user) return () => undefined;
     checkStatus();
     fetchSensors();
     const i1 = window.setInterval(checkStatus, 10000);
     const i2 = window.setInterval(fetchSensors, 5000);
-    return () => { window.clearInterval(i1); window.clearInterval(i2); };
-  }, [checkStatus, fetchSensors]);
+    return () => {
+      window.clearInterval(i1);
+      window.clearInterval(i2);
+    };
+  }, [loading, user, checkStatus, fetchSensors]);
 
   const handleStart = async () => {
     if (isRunning) return;
@@ -397,6 +426,17 @@ export default function Dashboard() {
           <div>
             <h1 className="text-4xl font-bold mb-2">Sala de Control de Semáforos</h1>
             <p className="text-muted-foreground">Panel de administración</p>
+            {user && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Bienvenido,{" "}
+                <span className="font-semibold text-foreground">{displayName}</span>
+                {shouldShowStormEmoji && (
+                  <span className="ml-1" role="img" aria-label="emoji especial">
+                    🌦
+                  </span>
+                )}
+              </p>
+            )}
           </div>
           {user && (
             <div className="self-start">

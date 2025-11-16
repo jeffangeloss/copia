@@ -9,6 +9,6 @@
     "build:dev": "npm --prefix PaginaSemaforos run build:dev",
     "lint": "npm --prefix PaginaSemaforos run lint",
     "preview": "npm --prefix PaginaSemaforos run preview",
-    "proxy": "python3 Servidor.py --dir PaginaSemaforos/dist --port 8080"
+    "proxy": "npm --prefix PaginaSemaforos run build && python Servidor.py --dir PaginaSemaforos/dist --port 8080"
   }
 }
